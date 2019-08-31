@@ -59,9 +59,9 @@ Prerequisitos
 	64 bytes from nodo01 (192.168.1.20): icmp_seq=2 ttl=64 time=0.047 ms
 	64 bytes from nodo01 (192.168.1.20): icmp_seq=3 ttl=64 time=0.055 ms
 
---- nodo01 ping statistics ---
-3 packets transmitted, 3 received, 0% packet loss, time 1998ms
-rtt min/avg/max/mdev = 0.028/0.043/0.055/0.012 ms
+	--- nodo01 ping statistics ---
+	3 packets transmitted, 3 received, 0% packet loss, time 1998ms
+	rtt min/avg/max/mdev = 0.028/0.043/0.055/0.012 ms
 
 6. Tener un usuario del SO y con los privilegios en Tuxedo::
 
@@ -84,7 +84,7 @@ rtt min/avg/max/mdev = 0.028/0.043/0.055/0.012 ms
 	  TUXCONFIG=/u01/oracle/orahome_1/tuxedo12.2.2.0.0/simpdir/tuxconfig; export TUXCONFIG
 	$ source simpapp.env
 
-**Nota** el directorio APPDIR y el Archivo TUXCONFIG aun no estan creados, pero no nos impide ya tener el archivo de enviroment
+**Nota** el directorio APPDIR y el Archivo TUXCONFIG aun no estan creados, pero no nos impide tener las variables creadas.
 
 9. Iniciar las variables de entorno del archivo env tux.env, ubicado en $TUXDIR::
 
@@ -129,7 +129,7 @@ Paso 1: Cómo copiar los archivos de simpapp
 	TUXCONFIG=pathname of your present working directory/tuxconfig
 	PATH=$PATH:$TUXDIR/bin
 	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TUXDIR/lib
-	APPDIR=/u01/oracle/orahome_1/tuxedo12.2.2.0.0/simpdir
+	APPDIR=pathname of de application simpapp
 	export TUXDIR TUXCONFIG PATH LD_LIBRARY_PATH APPDIR
 
 **Nota** Puede ser redundante nuevamente cargar las variables y exportarlas, pero es para demostrar lo importante que estemos claro con esto y esten bien configuradas.
@@ -457,13 +457,13 @@ Los campos editados quedarían asi::
 
 **Cómo cargar el archivo de configuración**
 
-1. Ejecute tmloadcfpara cargar el archivo de configuración::
+1. Ejecute tmloadcf para cargar el archivo de configuración, el que declaramos en la variable TUXCONFIG::
 
 	$ tmloadcf ubbsimple 
 	Inicializar archivo TUXCONFIG: /u01/oracle/orahome_1/tuxedo12.2.2.0.0/simpdir/tuxconfig [y, q] ?
 	$
 
-2. Comprueba los resultados:
+2. Comprueba los resultados::
 	$ ls -l 
 	total 580
 	-rw-rw---- 1 oracle oinstall   2943 Mar 30  2016 README

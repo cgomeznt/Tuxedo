@@ -11,6 +11,7 @@ Preparación de archivos y recursos de simpapp
 +++++++++++++++++++++++++++++++++++++++++++++++
 Este tema es un tutorial que lo guía, paso a paso, a través del proceso de desarrollo y ejecución de una aplicación ATMI de Oracle Tuxedo de muestra. El siguiente diagrama de flujo resume el proceso. Haga clic en cada tarea para obtener instrucciones sobre cómo completar esa tarea.
 
+* Prerequisitos
 * Paso 1: Cómo copiar los archivos de simpapp
 * Paso 2: examinar y compilar el cliente
 * Paso 3: examinar y compilar el servidor
@@ -23,6 +24,93 @@ Este tema es un tutorial que lo guía, paso a paso, a través del proceso de des
 Antes de que empieces
 ++++++++++++++++++++++++++
 Antes de poder ejecutar este tutorial, se debe instalar el cliente y servidor Oracle Tuxedo ATMI para que los archivos y comandos a los que se hace referencia estén disponibles. Si la instalación ya ha sido realizada por otra persona, debe conocer la ruta del directorio en el que está instalado el software (TUXDIR). También debe tener permisos de lectura y escritura en los directorios y archivos en la estructura de directorios de Oracle Tuxedo para poder copiar archivos simpapp y ejecutar comandos de Oracle Tuxedo.
+
+Prerequisitos
+++++++++++++++++++
+1. Este laboratorio se realizo con este SO::
+
+	$ cat /etc/redhat-release 
+	Red Hat Enterprise Linux Server release 7.5 (Maipo)
+	
+2. Debe tener una IP::
+
+	$ ifconfig | grep -w inet
+		inet 192.168.1.20  netmask 255.255.254.0  broadcast 192.168.1.255
+		inet 127.0.0.1  netmask 255.0.0.0
+
+3. Tener configurado el nombre de la maquina::
+
+	$ hostname
+	nodo01
+	$ cat /etc/hostname 
+	localhost.localdomain
+
+
+4. Tener una entrada del nombre del HOST en el archivo /etc/hosts o en el dns::
+
+	$ grep $(hostname) /etc/hosts
+	192.168.1.20	nodo01	srv01	srv02
+
+5. Asegurar que responda por la IP::
+
+	$ ping -c 3 $(hostname)
+	PING nodo01 (192.168.1.20) 56(84) bytes of data.
+	64 bytes from nodo01 (192.168.1.20): icmp_seq=1 ttl=64 time=0.028 ms
+	64 bytes from nodo01 (192.168.1.20): icmp_seq=2 ttl=64 time=0.047 ms
+	64 bytes from nodo01 (192.168.1.20): icmp_seq=3 ttl=64 time=0.055 ms
+
+--- nodo01 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 1998ms
+rtt min/avg/max/mdev = 0.028/0.043/0.055/0.012 ms
+
+6. Tener un usuario del SO y con los privilegios en Tuxedo::
+
+	$ whoami
+	oracle
+	$ ls -ld /u01/oracle/orahome_1/tuxedo12.2.2.0.0/
+	drwxrwx--- 12 oracle oinstall 4096 Aug 30 22:50 /u01/oracle/orahome_1/tuxedo12.2.2.0.0/
+
+7. Tener bien configurado el umask::
+
+	$ umask
+	0022
+
+8. Opcional tener un archivo de env, en el perfil del usuario para que inicializar las variables, TUXDIR, APPDIR, TUXCONFIG::
+
+	$ cd 
+	$ vi simpapp.env
+	  TUXDIR=/u01/oracle/orahome_1/tuxedo12.2.2.0.0; export TUXDIR
+	  APPDIR=/u01/oracle/orahome_1/tuxedo12.2.2.0.0/simpdir; export APPDIR
+	  TUXCONFIG=/u01/oracle/orahome_1/tuxedo12.2.2.0.0/simpdir/tuxconfig; export TUXCONFIG
+	$ source simpapp.env
+
+**Nota** el directorio APPDIR y el Archivo TUXCONFIG aun no estan creados, pero no nos impide ya tener el archivo de enviroment
+
+9. Iniciar las variables de entorno del archivo env tux.env, ubicado en $TUXDIR::
+
+	$ cat tux.env 
+	#	Copyright (c) 2014 Oracle, Inc.
+	#	All rights reserved
+	#
+	#	THIS IS UNPUBLISHED PROPRIETARY
+	#	SOURCE CODE OF ORACLE, Inc.
+	#	The copyright notice above does not
+	#	evidence any actual or intended
+	#	publication of such source code.
+	#
+	TUXDIR=/u01/oracle/orahome_1/tuxedo12.2.2.0.0; export TUXDIR
+	JAVA_HOME=/usr/lib/jvm/jdk1.8.0_151/jre; export JAVA_HOMETUXDIR
+	JVMLIBS=$JAVA_HOME/lib/amd64/server:$JAVA_HOME/bin
+	PATH=$TUXDIR/bin:$JAVA_HOME/bin:$PATH; export PATH
+	COBCPY=:$TUXDIR/cobinclude; export COBCPY
+	COBOPT="-C ANS85 -C ALIGN=8 -C NOIBMCOMP -C TRUNC=ANSI -C OSEXT=cbl"; export COBOPT
+	SHLIB_PATH=$TUXDIR/lib:$JVMLIBS:$SHLIB_PATH; export SHLIB_PATH
+	LIBPATH=$TUXDIR/lib:$JVMLIBS:$LIBPATH; export LIBPATH
+	LD_LIBRARY_PATH=$TUXDIR/lib:$JVMLIBS:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH
+	WEBJAVADIR=$TUXDIR/udataobj/webgui/java; export WEBJAVADIR
+
+	$ source $TUXDIR/tux.env
+
 
 Paso 1: Cómo copiar los archivos de simpapp
 +++++++++++++++++++++++++++++++++++++++++++++++
@@ -44,12 +132,14 @@ Paso 1: Cómo copiar los archivos de simpapp
 	APPDIR=/u01/oracle/orahome_1/tuxedo12.2.2.0.0/simpdir
 	export TUXDIR TUXCONFIG PATH LD_LIBRARY_PATH APPDIR
 
+**Nota** Puede ser redundante nuevamente cargar las variables y exportarlas, pero es para demostrar lo importante que estemos claro con esto y esten bien configuradas.
+
 
 Es necesario TUXDIR y PATH para acceder a los archivos en la estructura de directorios del sistema de Oracle Tuxedo y para ejecutar comandos del sistema de Oracle Tuxedo. En Sun Solaris, /usr/5bindebe ser el primer directorio en su PATH. Con AIX en el RS/6000, use en LIBPATH lugar de LD_LIBRARY_PATH. En HP-UX en HP 9000, use en SHLIB_PATHlugar de LD_LIBRARY_PATH.
 
 Debe configurar TUXCONFIG para poder cargar el archivo de configuración, que se describe en el Paso 4: Edición y carga del archivo de configuración .
 
-3. Copia los simpapparchivos::
+3. Copia los simpapp archivos::
 
 	cp $TUXDIR/samples/atmi/simpapp/*.
 
@@ -58,14 +148,14 @@ Debe configurar TUXCONFIG para poder cargar el archivo de configuración, que se
 4. Liste los archivos::
 
    $ ls 
-     README  simpcl.c  simpserv.c  ubbsimple
+   README  simpcl.c  simpserv.c  ubbsimple
 
 **Nota:**	Los READMEarchivos proporcionan explicaciones de los otros archivos.
 Los tres archivos que son centrales para la aplicación son:
 
-	simpcl.c: El código fuente del programa cliente.
-	simpserv.c: El código fuente del programa del servidor.
-	ubbsimple: La forma de texto del archivo de configuración para la aplicación.
+	* simpcl.c: El código fuente del programa cliente.
+	* simpserv.c: El código fuente del programa del servidor.
+	* ubbsimple: La forma de texto del archivo de configuración para la aplicación.
 
 
 Paso 2: examinar y compilar el cliente
@@ -173,16 +263,17 @@ La conclusión exitosa del programa. Imprime el mensaje devuelto por el servidor
 
 Cómo compilar al cliente
 +++++++++++++++++++++++++++++
+**Cómo examinar el Cliente**
 
 1. Primero debe editar el archivo simpcl.c y incluir los headers de string::
 
 	#include <string.h>
 
-2. Ejecute buildclientpara compilar el programa cliente ATMI::
+2. Ejecute build clientpara compilar el programa cliente ATMI::
 
      buildclient -o simpcl -f simpcl.c
 
-El archivo de salida es simpcly el archivo de origen de entrada es simpcl.c.
+El archivo de salida es simpcl y el archivo de origen de entrada es simpcl.c.
 
 2. Comprueba los resultados::
 
@@ -200,7 +291,8 @@ Como se puede ver, ahora tenemos un módulo ejecutable llamado simpcl. El tamañ
 Paso 3: examinar y compilar el servidor
 ++++++++++++++++++++++++++++++++++++++++
 **Cómo examinar el servidor**
-Revise el código fuente del programa del servidor ATMI.::
+
+1. Revise el código fuente del programa del servidor ATMI.::
 
 	$ more simpserv.c
 
@@ -302,6 +394,7 @@ Ahora tiene un módulo ejecutable llamado simpserv.
 Paso 4: Edición y carga del archivo de configuración
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 **Cómo editar el archivo de configuración**
+
 1. En un editor de texto, familiarícese con ubbsimple cuál es el archivo de configuración simpapp.::
 
 	1 $ 
@@ -363,6 +456,7 @@ Los campos editados quedarían asi::
 2. Para cada uno <string> (es decir, para cada cadena que se muestra entre paréntesis angulares), sustituya un valor apropiado.
 
 **Cómo cargar el archivo de configuración**
+
 1. Ejecute tmloadcfpara cargar el archivo de configuración::
 
 	$ tmloadcf ubbsimple 
@@ -469,7 +563,7 @@ Nota:	El signo mayor que (>) es el tmadmin indicador.
 	simpserv       00001.00001                GROUP1         1      0         0 (  IDLE )
 
 
-3. Ingrese el printservice(psc)comando para mostrar información sobre los servicios:
+3. Ingrese el printservice(psc)comando para mostrar información sobre los servicios::
 
 	> psc
 	Service Name Routine Name Prog Name  Grp Name  ID    Machine  # Done Status

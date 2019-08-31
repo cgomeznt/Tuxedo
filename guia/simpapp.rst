@@ -464,6 +464,7 @@ Los campos editados quedarían asi::
 	$
 
 2. Comprueba los resultados::
+
 	$ ls -l 
 	total 580
 	-rw-rw---- 1 oracle oinstall   2943 Mar 30  2016 README
